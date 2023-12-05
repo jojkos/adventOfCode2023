@@ -15,9 +15,6 @@ var parseValue = function (value) {
         var line = lines_1[_i];
         var range = parseValueLine(line);
         result.push(range);
-        // for (let i = 0; i < range.rangeLength; i++) {
-        //     map[range.sourceRangeStart + i] = range.destinationRangeStart + i;
-        // }
     }
     result.sort(function (a, b) { return a.source - b.source; });
     for (var i = 0; i < result.length; i++) {
@@ -46,24 +43,31 @@ var waterToLight = parseValue(realInput_1.waterToLightMap);
 var lightToTemperature = parseValue(realInput_1.lightToTemperatureMap);
 var temperatureToHumidity = parseValue(realInput_1.temperatureToHumidityMap);
 var humidityToLocation = parseValue(realInput_1.humidityToLocationMap);
+var namesOrder = ["seedToSoil", "soilToFertilizer", "fertilizerToWater", "waterToLight", "lightToTemperature", "temperatureToHumidity", "humidityToLocation"];
 var order = [seedToSoil, soilToFertilizer, fertilizerToWater, waterToLight, lightToTemperature, temperatureToHumidity, humidityToLocation];
-var getMapValue = function (ranges, index) {
+// optimization
+var lastValuesMappings = {};
+var isInRange = function (range, index) {
+    return range.source <= index && range.source + range.range >= index;
+};
+var getMapValue = function (ranges, index, name) {
+    var lastRange = lastValuesMappings[name];
+    if (lastRange && isInRange(lastRange, index)) {
+        var diff = index - lastRange.source;
+        return lastRange.destination + diff;
+    }
     for (var i = 0; i < ranges.length; i++) {
         var range = ranges[i];
         if (range.source > index) {
             return index;
         }
-        if (range.source <= index && range.source + range.range >= index) {
+        if (isInRange(range, index)) {
             var diff = index - range.source;
+            lastValuesMappings[name] = range;
             return range.destination + diff;
         }
     }
     return index;
-    // if (map[index] === undefined) {
-    //     return index;
-    // }
-    //
-    // return map[index];
 };
 var closest = null;
 console.time();
@@ -85,9 +89,8 @@ for (var i = 0; i < seeds.length; i += 2) {
     var range = seeds[i + 1];
     for (var seed = start; seed < start + range; seed++) {
         var index = seed;
-        for (var _i = 0, order_1 = order; _i < order_1.length; _i++) {
-            var map = order_1[_i];
-            index = getMapValue(map, index);
+        for (var x = 0; x < order.length; x++) {
+            index = getMapValue(order[x], index, namesOrder[x]);
         }
         if (closest === null || index < closest) {
             closest = index;
@@ -96,4 +99,5 @@ for (var i = 0; i < seeds.length; i += 2) {
 }
 console.timeEnd();
 console.log(closest);
+// 77435348
 //# sourceMappingURL=code.js.map

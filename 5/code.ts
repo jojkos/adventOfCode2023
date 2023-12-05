@@ -21,8 +21,8 @@ const parseValueLine = (valueLine: string): IRange => {
 
     return {
         destination: destinationRangeStart, source: sourceRangeStart, range: rangeLength
-    }
-}
+    };
+};
 
 const parseValue = (value: string): IRange[] => {
     const result: IRange[] = [];
@@ -32,13 +32,9 @@ const parseValue = (value: string): IRange[] => {
         const range = parseValueLine(line);
 
         result.push(range);
-
-        // for (let i = 0; i < range.rangeLength; i++) {
-        //     map[range.sourceRangeStart + i] = range.destinationRangeStart + i;
-        // }
     }
 
-    result.sort((a: IRange, b: IRange) => a.source - b.source)
+    result.sort((a: IRange, b: IRange) => a.source - b.source);
 
     for (let i = 0; i < result.length; i++) {
         const val = result[i];
@@ -52,7 +48,7 @@ const parseValue = (value: string): IRange[] => {
     }
 
     return result;
-}
+};
 
 
 const seeds = seedsLine.split(" ").map(v => Number(v));
@@ -64,17 +60,33 @@ const seeds = seedsLine.split(" ").map(v => Number(v));
 // const temperatureToHumidity: TMap = {};
 // const humidityToLocation: TMap = {};
 
-const seedToSoil = parseValue(seedToSoilMap)
-const soilToFertilizer = parseValue(soilToFertilizerMap)
-const fertilizerToWater = parseValue(fertilizerToWaterMap)
-const waterToLight = parseValue(waterToLightMap)
-const lightToTemperature = parseValue(lightToTemperatureMap)
-const temperatureToHumidity = parseValue(temperatureToHumidityMap)
-const humidityToLocation = parseValue(humidityToLocationMap)
+const seedToSoil = parseValue(seedToSoilMap);
+const soilToFertilizer = parseValue(soilToFertilizerMap);
+const fertilizerToWater = parseValue(fertilizerToWaterMap);
+const waterToLight = parseValue(waterToLightMap);
+const lightToTemperature = parseValue(lightToTemperatureMap);
+const temperatureToHumidity = parseValue(temperatureToHumidityMap);
+const humidityToLocation = parseValue(humidityToLocationMap);
 
+const namesOrder = ["seedToSoil", "soilToFertilizer", "fertilizerToWater", "waterToLight", "lightToTemperature", "temperatureToHumidity", "humidityToLocation"];
 const order = [seedToSoil, soilToFertilizer, fertilizerToWater, waterToLight, lightToTemperature, temperatureToHumidity, humidityToLocation];
 
-const getMapValue = (ranges: IRange[], index: number): number => {
+// optimization
+const lastValuesMappings: Record<string, IRange> = {};
+
+const isInRange = (range: IRange, index: number): boolean => {
+    return range.source <= index && range.source + range.range >= index;
+};
+
+const getMapValue = (ranges: IRange[], index: number, name: string): number => {
+    const lastRange = lastValuesMappings[name];
+
+    if (lastRange && isInRange(lastRange, index)) {
+        const diff = index - lastRange.source;
+
+        return lastRange.destination + diff;
+    }
+
     for (let i = 0; i < ranges.length; i++) {
         const range = ranges[i];
 
@@ -82,21 +94,17 @@ const getMapValue = (ranges: IRange[], index: number): number => {
             return index;
         }
 
-        if (range.source <= index && range.source + range.range >= index) {
+        if (isInRange(range, index)) {
             const diff = index - range.source;
+
+            lastValuesMappings[name] = range;
 
             return range.destination + diff;
         }
     }
 
     return index;
-
-    // if (map[index] === undefined) {
-    //     return index;
-    // }
-    //
-    // return map[index];
-}
+};
 
 let closest: number = null;
 
@@ -123,8 +131,8 @@ for (let i = 0; i < seeds.length; i += 2) {
     for (let seed = start; seed < start + range; seed++) {
         let index = seed;
 
-        for (const map of order) {
-            index = getMapValue(map, index)
+        for (let x = 0; x < order.length; x++) {
+            index = getMapValue(order[x], index, namesOrder[x]);
         }
 
         if (closest === null || index < closest) {
@@ -135,4 +143,6 @@ for (let i = 0; i < seeds.length; i += 2) {
 }
 console.timeEnd();
 
-console.log(closest)
+console.log(closest);
+
+// 77435348
