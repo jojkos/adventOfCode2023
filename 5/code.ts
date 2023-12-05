@@ -114,8 +114,8 @@ console.time();
 // for (const seed of seeds) {
 //     let index = seed;
 //
-//     for (const map of order) {
-//         index = getMapValue(map, index)
+//     for (let x = 0; x < order.length; x++) {
+//         index = getMapValue(order[x], index, namesOrder[x]);
 //     }
 //
 //     if (closest === null || index < closest) {
