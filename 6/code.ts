@@ -10,6 +10,8 @@ const distances = parseValues(inputLines[1]);
 
 let res1 = 1;
 
+console.time();
+
 for (let i = 0; i < times.length; i++) {
     const time = times[i];
     const record = distances[i];
@@ -27,4 +29,5 @@ for (let i = 0; i < times.length; i++) {
     res1 = res1 * possibilities;
 }
 
+console.timeEnd();
 console.log(res1);

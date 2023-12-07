@@ -8,6 +8,7 @@ var inputLines = (0, utils_1.parseFileIntoLines)("input.txt");
 var times = parseValues(inputLines[0]);
 var distances = parseValues(inputLines[1]);
 var res1 = 1;
+console.time();
 for (var i = 0; i < times.length; i++) {
     var time = times[i];
     var record = distances[i];
@@ -21,5 +22,6 @@ for (var i = 0; i < times.length; i++) {
     }
     res1 = res1 * possibilities;
 }
+console.timeEnd();
 console.log(res1);
 //# sourceMappingURL=code.js.map
