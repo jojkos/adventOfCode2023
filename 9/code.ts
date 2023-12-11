@@ -1,95 +1,117 @@
 import { parseFileIntoLines } from "../utils";
 
 const inputLines = parseFileIntoLines("input.txt");
+const map: string[][] = inputLines.map(line => line.split(""));
 
-const printRanges = (ranges: number[][]) => {
-    let result = "";
+type TCoord = [number, number];
 
-    for (let i = 0; i < ranges.length; i++) {
-        const range = ranges[i];
+const Start = "S";
+const Ground = ".";
 
-        result += new Array(i).fill(" ").join("");
-
-        for (const number of range) {
-            result += number;
-            result += "  ";
-        }
-
-        result += "\n";
-    }
-
-    console.log(result);
+const Pipes: Record<string, TCoord[]> = {
+    "|": [[1, 0], [-1, 0]],
+    "-": [[0, 1], [0, -1]],
+    "L": [[0, 1], [-1, 0]],
+    "J": [[0, -1], [-1, 1]],
+    "7": [[1, 0], [0, -1]],
+    "F": [[0, 1], [-1, 0]]
 };
 
+const getNext = (prevCoord: TCoord, currentCoord: TCoord): TCoord => {
+    const diff = [currentCoord[0] - prevCoord[0], currentCoord[1] - prevCoord[1]];
+    const newPipe = map[currentCoord[0]][currentCoord[1]];
+    let nextDiff: TCoord = [0, 0];
 
-let res1 = 0;
-let res2 = 0;
+    if (newPipe === "|") {
+        if (diff[0] === 1) nextDiff = Pipes["|"][0]
+        else nextDiff = Pipes["|"][1]
+    } else if (newPipe === "-") {
+        if (diff[1] === 1) nextDiff = Pipes["-"][0]
+        else nextDiff = Pipes["-"][1]
+    } else if (newPipe === "L") {
+        if (diff[0] === 1) nextDiff = Pipes["L"][0]
+        else nextDiff = Pipes["L"][1]
+    } else if (newPipe === "J") {
+        if (diff[0] === 1) nextDiff = Pipes["J"][0]
+        else nextDiff = Pipes["J"][1]
+    } else if (newPipe === "7") {
+        if (diff[1] === 1) nextDiff = Pipes["7"][0]
+        else nextDiff = Pipes["7"][1]
+    } else if (newPipe === "F") {
+        if (diff[0] === -1) nextDiff = Pipes["F"][0]
+        else nextDiff = Pipes["F"][0]
+    }
 
+    return [currentCoord[0] + nextDiff[0], currentCoord[1] + nextDiff[1]] as TCoord;
+}
+
+const findStartCoord = (map: string[][]): TCoord => {
+    for (let i = 0; i < map.length; i++) {
+        const line = map[i];
+
+        for (let j = 0; j < line.length; j++) {
+            const val = line[j];
+
+            if (val === Start) {
+                return [i, j];
+            }
+        }
+    }
+};
+
+const isSameCoord = (coord1: TCoord, coord2: TCoord): boolean => {
+    return coord1[0] === coord2[0] && coord1[1] === coord2[1];
+};
 
 console.time();
 
-for (const line of inputLines) {
-    const ranges: number[][] = [
-        line.split(" ").map(v => Number(v))
-    ];
 
-    // prepare ranges
-    while (true) {
-        let allZeroes = true;
 
-        const currentRange = ranges[ranges.length - 1];
-        const newRange: number[] = [];
+// lvl 1
 
-        for (let i = 0; i < currentRange.length - 1; i++) {
-            const v1 = currentRange[i];
-            const v2 = currentRange [i + 1];
-            const diff = v2 - v1;
+let furthest = 0;
+let loopLength = 0;
 
-            newRange.push(diff);
+const start = findStartCoord(map);
 
-            if (diff !== 0) {
-                allZeroes = false;
-            }
-        }
 
-        ranges.push(newRange);
+const dfs = (coord: TCoord, prevCoord: TCoord, ignoreStart?: boolean/*, currentDistance: number = 0*/) => {
+    const pipe = map[coord[0]][coord[1]];
 
-        if (allZeroes) {
-            newRange.push(0);
-            break;
-        }
+    if (!ignoreStart && isSameCoord(coord, start)) {
+        return 1;
     }
 
-    // add future
-    for (let i = ranges.length - 1; i > 0; i--) {
-        const r1 = ranges[i];
-        const r2 = ranges[i - 1];
-        const newVal = r1[r1.length - 1] + r2[r2.length - 1];
 
-        r2.push(newVal);
+    loopLength += 1;
 
-        if (i === 1) {
-            res1 += newVal;
-        }
+    if (pipe === Ground || !pipe) {
+        return 0;
     }
 
-    // add history
-    for (let i = ranges.length - 1; i > 0; i--) {
-        const r1 = ranges[i];
-        const r2 = ranges[i - 1];
-        const newVal = r2[0] - r1[0];
+    const newCord = getNext(prevCoord, coord);
+    
+    return dfs(newCord, coord/*, currentDistance + 1*/);
+};
 
-        r2.unshift(newVal);
 
-        if (i === 1) {
-            res2 += newVal;
-        }
+for (const pipe of Object.keys(Pipes)) {
+    loopLength = 0;
+    map[start[0]][start[1]] = pipe;
+    const diff = Pipes[pipe][0];
+
+
+    const res = dfs(start, [start[0] - diff[0], start[1] - diff[1]], true);
+
+    if (res) {
+        console.log(pipe, res);
+        break;
     }
-
-    // printRanges(ranges);
 }
 
 
+console.log(loopLength / 2);
+
+
 console.timeEnd();
-console.log(res1);
-console.log(res2);
+// console.log(furthest);
