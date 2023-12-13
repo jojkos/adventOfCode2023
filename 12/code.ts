@@ -1,5 +1,8 @@
-import { parseFileIntoLines } from "../utils";
-import { memoize } from "lodash";
+import * as fs from "fs";
+
+const parseFileIntoLines = (filePath: string): string[] => {
+    return fs.readFileSync(filePath).toString().split("\r\n");
+};
 
 const inputLines = parseFileIntoLines("input.txt");
 
@@ -128,10 +131,10 @@ const getFits = (values: string, size: number, numbersCount: number) => {
 
 let count = 0;
 
-const cache2 = new Map<string, string[]>();
+const cache2 = new Map<string, any>();
 
 const dfs = (line: ILine) => {
-    const key = `${line.values}-${line.numbers}`;
+    const key = `${line.values}-${line.numbers.join(",")}`;
 
     if (cache2.has(key)) {
         return cache2.get(key);
@@ -140,20 +143,28 @@ const dfs = (line: ILine) => {
     count += 1;
 
     if (line.numbers.length === 0) {
-        return [line.values];
+        const rres = [line.values];
+
+        cache2.set(key, rres);
+
+        return rres;
     }
 
     const max = Math.max(...line.numbers);
+
     const maxIndex = line.numbers.findIndex(n => n === max);
     const previous = line.numbers.filter((_, i) => i < maxIndex);
     const next = line.numbers.filter((_, i) => i > maxIndex);
     const fits = getFits(line.values, max, line.numbers.length - 1);
 
     if (line.numbers.length === 1) {
-        return fits.map(([left, right, middle]) => `${left}${middle}${right}`);
+        const rres = fits.map(([left, right, middle]) => `${left}${middle}${right}`);
+
+        cache2.set(key, rres);
+
+        return rres;
     }
 
-    let sum = 0;
     const resFits = [];
 
     for (const [left, right, middle] of fits) {
@@ -168,7 +179,6 @@ const dfs = (line: ILine) => {
         });
 
         if (leftRes.length && rightRes.length) {
-            sum += Math.max(leftRes.length, rightRes.length);
 
             for (const leftFit of leftRes) {
                 for (const rightFit of rightRes) {
@@ -185,6 +195,131 @@ const dfs = (line: ILine) => {
     return resFits;
 };
 
+const allPossibleCounts = (values: string) => {
+    let count = 0;
+
+    for (const c of replaceAll(values, Unknown, Broken)) {
+        if (c === Broken) {
+            count += 1;
+        }
+    }
+
+    return count;
+};
+
+const getFits2 = (line: ILine) => {
+    const size = line.numbers[0];
+    const nextNumber = line.numbers[1];
+    const values = line.values;
+
+    const key = `${values}-${size}`;
+
+    // if (cache.has(key)) {
+    //     return cache.get(key);
+    // }
+
+    const allNumbersSum = line.numbers.reduce((acc, current) => acc + current, 0);
+    const enoughSpaceLeft = allPossibleCounts(line.values) >= allNumbersSum;
+
+    if (!enoughSpaceLeft) {
+        cache.set(key, []);
+        return [];
+    }
+
+    if (line.numbers.length === 0) {
+        return [[line.values, ""]];
+    }
+
+    const checkVal = new Array(size).fill(Broken).join("");
+    // const preciseFitIndex = values.indexOf(checkVal);
+    let firstMatchIndex: number = null;
+
+    const fits = [];
+
+    for (let i = 0; i < values.length; i += 1) {
+        // if (nextNumber && firstMatchIndex && i > firstMatchIndex + nextNumber) {
+        //     break;
+        // }
+
+        const subStr = values.substring(i, i + size);
+
+        if (checkIfFits(subStr, checkVal)) {
+            if (values[i - 1] === Broken || values[i + size] === Broken) {
+                // lol tohle je hodne dulezitej check, totalne oreze strom
+                if (firstMatchIndex) {
+                    break;
+                } else {
+                    continue;
+                }
+            }
+
+
+            if (!firstMatchIndex) {
+                firstMatchIndex = i;
+            }
+
+            const previous = values.substring(0, i);
+            const next = values.substring(i + size, values.length);
+
+            const [fixedPrevious, fixedNext, middle] = fixValues(previous, next, checkVal);
+
+            fits.push([`${fixedPrevious}${middle}`, fixedNext]);
+        }
+    }
+
+    cache2.set(key, fits);
+
+    return fits;
+};
+
+const dfs2 = (initialLine) => {
+    const stack = [{ line: initialLine, index: 0, prefix: '' }];
+    const results = [];
+    const key = `${initialLine.values}-${initialLine.numbers.join(",")}`;
+
+    // if (cache2.has(key)) {
+    //     return cache2.get(key);
+    // }
+
+    while (stack.length > 0) {
+        const { line, index, prefix } = stack.pop();
+
+        const lineKey = `${line.values}-${line.numbers.join(",")}`;
+
+        if (cache2.has(lineKey)) {
+            const cachedResults = cache2.get(lineKey).map(res => prefix + res);
+            results.push(...cachedResults);
+            continue;
+        }
+
+        if (line.numbers.length === 0) {
+            cache2.set(lineKey, [line.values]);
+            results.push(prefix + line.values);
+            continue;
+        }
+
+        const fits = getFits2(line);
+
+        if (line.numbers.length === 1) {
+            const singleFitResults = fits.map(([fitPrefix, _]) => prefix + fitPrefix);
+            cache2.set(lineKey, singleFitResults);
+            results.push(...singleFitResults);
+            continue;
+        }
+
+        for (const [fitPrefix, suffix] of fits) {
+            stack.push({
+                line: { values: suffix, numbers: line.numbers.slice(1) },
+                index: index + 1,
+                prefix: prefix + fitPrefix
+            });
+        }
+    }
+
+    cache2.set(key, results);
+    return results;
+};
+
 console.time();
 
 const lines = parseLines2(inputLines);
@@ -196,35 +331,24 @@ let failed = 0;
 for (const line of lines) {
     x += 1;
 
-    console.log(x);
+    // console.log(x);
 
     const defString = line.values;
     const defNumbers = [...line.numbers];
 
-    for (let i = 0; i < 4; i++) {
-        line.values += `?${defString}`;
-        line.numbers.push(...defNumbers);
-    }
+    // for (let i = 0; i < 4; i++) {
+    //     line.values += `?${defString}`;
+    //     line.numbers.push(...defNumbers);
+    // }
 
-    const res = dfs(line);
+    const res = dfs2(line);
 
     let valids = 0;
     const numbers = line.numbers.length;
 
-    for (const r of res) {
-        const rr = replaceAll(r, Unknown, Valid);
-        const brokens = replaceAll(rr, Valid, " ").split(" ").filter(v => v).length;
+    console.log(res.length);
 
-        if (brokens == numbers) {
-            valids += 1;
-            // console.log(r);
-        } else {
-            failed += 1;
-            // console.log(r);
-            // console.log(rr);
-            // console.log("fycj");
-        }
-    }
+    valids += res.length;
 
     res1 += valids;
 }
