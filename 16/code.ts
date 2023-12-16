@@ -107,56 +107,91 @@ const isOutside = (pos: IPos) => {
     return pos.x < 0 || pos.y < 0 || pos.y >= map.length || pos.x >= map[0].length;
 };
 
-const beamsCycleCache: Record<string, boolean> = {};
-const energized: Record<string, boolean> = {};
 
 let res1 = 0;
+let res2 = 0;
 
 console.time();
 
 type TBeam = { id: number, pos: IPos, dir: Direction };
 
-const beams: TBeam[] = [];
-let maxId = 1;
-let beam: TBeam = { id: maxId, pos: { x: 0, y: 0 }, dir: Direction.Right };
+const starters: { pos: IPos, dir: Direction }[] = [];
 
-while (beam) {
-    // console.log(`${beam.id}:`,beam.pos, beam.dir);
+for (let i = 0; i < map[0].length; i++) {
+    starters.push({
+        pos: { y: 0, x: i },
+        dir: Direction.Down
+    });
+    starters.push({
+        pos: { y: map.length - 1, x: i },
+        dir: Direction.Up
+    });
+}
 
-    if (isOutside(beam.pos) || beamsCycleCache[posAndDirToKey(beam.pos, beam.dir)]) {
-        // console.log("end:", beam.id);
-        beam = beams.shift();
-        continue;
-    }
+for (let i = 0; i < map.length; i++) {
+    starters.push({
+        pos: { y: i, x: 0 },
+        dir: Direction.Right
+    });
+    starters.push({
+        pos: { y: i, x: map[0].length - 1 },
+        dir: Direction.Left
+    });
+}
 
-    beamsCycleCache[posAndDirToKey(beam.pos, beam.dir)] = true;
-    energized[posToKey(beam.pos)] = true;
+for (const start of starters) {
+    const energized: Record<string, boolean> = {};
+    const beamsCycleCache: Record<string, boolean> = {};
 
-    const next = getNextPosAndDir(beam.pos, beam.dir);
+    const beams: TBeam[] = [];
+    let maxId = 1;
+    let beam: TBeam = { ...start, id: maxId };
 
-    if (Array.isArray(next)) {
-        const [first, second] = next;
+    while (beam) {
+        // console.log(`${beam.id}:`,beam.pos, beam.dir);
 
-        beam.pos = first.pos;
-        beam.dir = first.dir;
-
-        maxId += 1;
-
-        if (!isOutside(second.pos)) {
-            beams.push({
-                id: maxId,
-                pos: second.pos,
-                dir: second.dir
-            });
+        if (isOutside(beam.pos) || beamsCycleCache[posAndDirToKey(beam.pos, beam.dir)]) {
+            // console.log("end:", beam.id);
+            beam = beams.shift();
+            continue;
         }
 
-    } else {
-        beam.pos = next.pos;
-        beam.dir = next.dir;
+        beamsCycleCache[posAndDirToKey(beam.pos, beam.dir)] = true;
+        energized[posToKey(beam.pos)] = true;
+
+        const next = getNextPosAndDir(beam.pos, beam.dir);
+
+        if (Array.isArray(next)) {
+            const [first, second] = next;
+
+            beam.pos = first.pos;
+            beam.dir = first.dir;
+
+            maxId += 1;
+
+            if (!isOutside(second.pos)) {
+                beams.push({
+                    id: maxId,
+                    pos: second.pos,
+                    dir: second.dir
+                });
+            }
+
+        } else {
+            beam.pos = next.pos;
+            beam.dir = next.dir;
+        }
+    }
+
+    const energy = Object.keys(energized).length;
+
+    if (energy > res2) {
+        res2 = energy;
     }
 }
 
 console.timeEnd();
 
-console.log(`res1:`, Object.keys(energized).length);
+// console.log(`res1:`, Object.keys(energized).length);
+console.log(res2);
 
