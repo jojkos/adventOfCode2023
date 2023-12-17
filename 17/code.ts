@@ -57,7 +57,7 @@ const getKey = (node: INode) => {
 };
 
 
-const aStar = (start: IPos, end: IPos): INode[] => {
+const aStar = (start: IPos, end: IPos, minLength = 1, maxLength = 3): INode[] => {
     const openSet = new Map();
     const closedSet = new Map();
     let startNode: INode = { ...start, f: 0, g: 0, h: heuristic(start, end), dir: null, dirCount: null };
@@ -69,14 +69,16 @@ const aStar = (start: IPos, end: IPos): INode[] => {
         const currentKey = getKey(current);
 
         if (current.x === endNode.x && current.y === endNode.y) {
-            let path: INode[] = [];
-            let temp: INode | undefined = current;
-            while (temp) {
-                path.push(temp);
-                temp = temp.previous;
-            }
+            if (current.dirCount >= minLength) {
+                let path: INode[] = [];
+                let temp: INode | undefined = current;
+                while (temp) {
+                    path.push(temp);
+                    temp = temp.previous;
+                }
 
-            return path.reverse();
+                return path.reverse();
+            }
         }
 
         openSet.delete(currentKey);
@@ -85,13 +87,14 @@ const aStar = (start: IPos, end: IPos): INode[] => {
         let dirs: Direction[];
 
 
-        if (current.dirCount === 3) {
-            dirs = Object.values(Direction);
+        if (current.dirCount === maxLength) {
             if ([Direction.Left, Direction.Right].includes(current.dir)) {
                 dirs = [Direction.Up, Direction.Down];
             } else {
                 dirs = [Direction.Left, Direction.Right];
             }
+        } else if (current.dirCount && current.dirCount < minLength) {
+            dirs = [current.dir];
         } else {
             dirs = Object.values(Direction);
         }
@@ -107,15 +110,13 @@ const aStar = (start: IPos, end: IPos): INode[] => {
                 continue;
             }
 
-            if (current.dirCount === 1) {
-                const currDir = current.dir;
+            const currDir = current.dir;
 
-                if (currDir === Direction.Left && direction === Direction.Right
-                    || currDir === Direction.Right && direction === Direction.Left
-                    || currDir === Direction.Up && direction === Direction.Down
-                    || currDir === Direction.Down && direction === Direction.Up)
-                    continue;
-            }
+            if (currDir === Direction.Left && direction === Direction.Right
+                || currDir === Direction.Right && direction === Direction.Left
+                || currDir === Direction.Up && direction === Direction.Down
+                || currDir === Direction.Down && direction === Direction.Up)
+                continue;
 
             const distance = map[neighborPos.y][neighborPos.x];
 
@@ -142,7 +143,6 @@ const aStar = (start: IPos, end: IPos): INode[] => {
                     continue;
                 }
             }
-
 
             if (openSet.has(neighborKey)) {
                 const test = openSet.get(neighborKey);
@@ -199,54 +199,27 @@ const Start: IPos = { x: 0, y: 0 };
 const End: IPos = { x: map[0].length - 1, y: map.length - 1 };
 
 console.time();
-const finalPath = aStar(Start, End);
+// const path1 = aStar(Start, End);
+const path2 = aStar(Start, End, 4, 10);
 
-let sum = 0;
 
-for (let i = 0; i < finalPath.length; i++) {
+for (let i = 0; i < path2.length; i++) {
     if (i !== 0) {
-        const node = finalPath[i];
-        const val = map[node.y][node.x];
+        const node = path2[i];
+        // const val = map[node.y][node.x];
 
-        sum += Number(val);
+        // console.log(node.x, node.y, node.dir, node.dirCount)
 
-        // console.log(node.dir)
-        // console.log(`${node.y},${node.x}`, node.dir, val, sum);
         clearMap[node.y][node.x] = ".";
     }
 }
 
-let testDir: Direction;
-let testDirCount = null;
-let prevDir: Direction;
-
-for (let i = 0; i < finalPath.length; i++) {
+for (let i = 0; i < path2.length; i++) {
     if (i !== 0) {
-        const node = finalPath[i];
+        const node = path2[i];
 
         // @ts-ignore
         map[node.y][node.x] = ".";
-
-        if (!testDir) {
-            testDir = node.dir;
-            testDirCount = 1;
-            prevDir = node.dir;
-        } else {
-            if (prevDir === Direction.Up && node.dir === Direction.Down) {
-                console.log("WTF");
-            }
-
-            if (testDir === node.dir) {
-                testDirCount += 1;
-
-                if (testDirCount > 3) {
-                    console.log("FAIL");
-                }
-            } else {
-                testDir = node.dir;
-                testDirCount = 1;
-            }
-        }
     }
 }
 
@@ -254,6 +227,6 @@ for (let i = 0; i < finalPath.length; i++) {
 console.timeEnd();
 
 // console.log("Path:", path);
-printMap(map);
-console.log(sum);
-// console.log(finalPath[finalPath.length - 1].g)
+// printMap(map);
+// console.log(path1[path1.length - 1].g);
+console.log(path2[path2.length - 1].g);
