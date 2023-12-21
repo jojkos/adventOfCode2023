@@ -14,6 +14,7 @@
 %qq -> th, gr
 %ns -> xv
 &vc -> gl, tv, pc, qd, tn, dg
+&vc -> gl, tv, pc, qd, tn, dgns
 %bd -> lz, vm
 %ms -> lz, bd
 %dg -> rv

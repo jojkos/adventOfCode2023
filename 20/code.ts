@@ -1,4 +1,5 @@
 import { parseFileIntoLines } from "../utils";
+import * as d3 from 'd3';
 
 const inputLines = parseFileIntoLines("input.txt");
 
