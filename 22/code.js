@@ -122,12 +122,20 @@ var _loop_2 = function (i) {
     var _loop_3 = function () {
         var currentBrick = supportedBricks.shift();
         var canFall = true;
-        for (var _b = 0, _c = Array.from(currentBrick.supportedBy.values()); _b < _c.length; _b++) {
-            var name_1 = _c[_b];
+        var _loop_4 = function (name_1) {
+            if (supportedBricks.find(function (b) { return b.name === name_1; })) {
+                console.log("TEST");
+            }
             if (!fallenBricks.has(name_1)) {
                 canFall = false;
-                break;
+                return "break";
             }
+        };
+        for (var _b = 0, _c = Array.from(currentBrick.supportedBy.values()); _b < _c.length; _b++) {
+            var name_1 = _c[_b];
+            var state_2 = _loop_4(name_1);
+            if (state_2 === "break")
+                break;
         }
         if (canFall) {
             count += 1;
@@ -140,6 +148,7 @@ var _loop_2 = function (i) {
                 }
             }
         }
+        supportedBricks.sort(sortBricks);
     };
     while (supportedBricks.length) {
         _loop_3();

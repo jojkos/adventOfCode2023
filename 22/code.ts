@@ -150,6 +150,10 @@ for (let i = 0; i < bricks.length; i++) {
         let canFall = true;
 
         for (const name of Array.from(currentBrick.supportedBy.values())) {
+            if (supportedBricks.find(b => b.name === name)) {
+                console.log("TEST")
+            }
+
             if (!fallenBricks.has(name)) {
                 canFall = false;
                 break;
@@ -166,8 +170,9 @@ for (let i = 0; i < bricks.length; i++) {
                     supportedBricksNames.add(bb.name);
                 }
             }
-
         }
+
+        supportedBricks.sort(sortBricks)
     }
 
     // console.log(`${brick.name}: ${count}`);
