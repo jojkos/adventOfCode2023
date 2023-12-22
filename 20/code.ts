@@ -1,5 +1,5 @@
 import { parseFileIntoLines } from "../utils";
-import * as d3 from 'd3';
+import * as d3 from "d3";
 
 const inputLines = parseFileIntoLines("input.txt");
 
@@ -143,7 +143,7 @@ const initPulse = (module: IModule, pulseType: PulseType): IPulse[] => {
 };
 
 const firePulse = (pulse: IPulse) => {
-    printPulse(pulse);
+    // printPulse(pulse);
 
     const module = modules[pulse.destination];
 
@@ -210,18 +210,36 @@ const pressButton = () => {
 const modules = parseInputs(inputLines);
 
 // lvl 1
-let n = 1;
+let n = 100000000000;
+
+modules["rx"] = {
+    type: ModuleType.Conjunction,
+    name: "rx",
+    memory: {
+        lv: PulseType.High
+    },
+    destination: []
+} as IConjunction;
+
 
 for (let i = 0; i < n; i++) {
     pressButton();
 
-    if ((modules["st"] as IConjunction).memory["gr"] !== PulseType.High) {
+    if (i % 10000 === 0) {
         console.log(i);
-        printModule(modules["gr"]);
     }
-    printModule(modules["gr"]);
+
+    const test = modules["hh"] as IConjunction;
+
+    if (Object.values(test.memory).every(puleType => puleType === PulseType.Low)) {
+        console.log("final: ", i + 1);
+        printModule(test);
+        break;
+    }
 }
 
+console.log(`high: ${highPulsesCount}`);
+console.log(`low: ${lowPulsesCount}`);
 console.log(highPulsesCount * lowPulsesCount);
 
 console.time();
@@ -234,7 +252,7 @@ let rxWasLow = false;
 //     pressButton();
 // }
 
-console.log(rxWasLow);
+// console.log(rxWasLow);
 
 console.timeEnd();
 

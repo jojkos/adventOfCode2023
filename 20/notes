@@ -1,0 +1,69 @@
+1. cycle: steps - 99990000, high - 1023242196, low-784903137
+
+broadcaster -> pc, sg, qf, gt
+%np -> vn
+%zf -> db, np
+&db -> np, gt, zj, ns, hh, rt
+%vn -> db, zj
+%gt -> rt, db
+%kc -> cq, db
+%qm -> db, zf
+%hf -> db
+%xv -> qm, db
+%cq -> hf, db
+%zj -> kc
+%ns -> xv
+%rt -> ns
+&hh -> lv
+&lv -> rx
+
+2. cycle: 99990000, high - 887426778, low - 693904923891519200
+broadcaster -> pc, sg, qf, gt
+&gr -> tp, fs, px, st, th, sg
+&st -> lv
+%sg -> fs, gr
+%qq -> th, gr
+%hx -> px, gr
+%bc -> cd, gr
+%gg -> rq, gr
+%rq -> gr
+%cd -> gg, gr
+%ld -> hx, gr
+%tp -> ld
+%fs -> tp
+%px -> qq
+%th -> bc
+
+3. cycle: 99990000,high: 778156385, low: 890708481
+broadcaster -> pc, sg, qf, gt
+&lz -> dt, dk, qf
+&dt -> lv
+%qh -> ms, lz
+%br -> lz, qh
+%bd -> lz, vm
+%ms -> lz, bd
+%ds -> dk, lz
+%xl -> gj, lz
+%vm -> lz
+%qf -> lz, vr
+%vr -> xz, lz
+%xz -> ds, lz
+%gj -> lz, br
+%dk -> xl
+
+4. cycle: high: 1283510193, low: 873336764
+broadcaster -> pc, sg, qf, gt
+&tn -> lv
+&vc -> gl, tv, pc, qd, tn, dg
+%rv -> rj, vc
+%pc -> jq, vc
+%cf -> vc
+%fk -> tv, vc
+%jq -> vc, fk
+%jp -> cf, vc
+%rj -> jp, vc
+%kz -> gl, vc
+%tv -> kz
+%dg -> rv
+%qd -> dg
+%gl -> qd

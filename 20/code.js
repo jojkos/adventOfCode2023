@@ -106,7 +106,7 @@ var initPulse = function (module, pulseType) {
     });
 };
 var firePulse = function (pulse) {
-    printPulse(pulse);
+    // printPulse(pulse);
     var module = modules[pulse.destination];
     if (!module) {
         return [];
@@ -169,15 +169,29 @@ var pressButton = function () {
 };
 var modules = parseInputs(inputLines);
 // lvl 1
-var n = 1;
+var n = 100000000000;
+modules["rx"] = {
+    type: ModuleType.Conjunction,
+    name: "rx",
+    memory: {
+        lv: PulseType.High
+    },
+    destination: []
+};
 for (var i = 0; i < n; i++) {
     pressButton();
-    if (modules["st"].memory["gr"] !== PulseType.High) {
+    if (i % 10000 === 0) {
         console.log(i);
-        printModule(modules["gr"]);
     }
-    printModule(modules["gr"]);
+    var test = modules["hh"];
+    if (Object.values(test.memory).every(function (puleType) { return puleType === PulseType.Low; })) {
+        console.log("final: ", i + 1);
+        printModule(test);
+        break;
+    }
 }
+console.log("high: ".concat(highPulsesCount));
+console.log("low: ".concat(lowPulsesCount));
 console.log(highPulsesCount * lowPulsesCount);
 console.time();
 var buttonPresses = 0;
@@ -186,7 +200,7 @@ var rxWasLow = false;
 //     buttonPresses += 1;
 //     pressButton();
 // }
-console.log(rxWasLow);
+// console.log(rxWasLow);
 console.timeEnd();
 // IDEA
 // nejak urcit finalni stav
