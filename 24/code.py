@@ -67,4 +67,4 @@ if __name__ == "__main__":
                 if is_l1_x_ok and is_l1_y_ok and is_l2_x_ok and is_l2_y_ok:
                     sum += 1
 
-    print(sum)
+    print("result:", sum)
