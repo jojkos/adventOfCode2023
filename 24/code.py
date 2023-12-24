@@ -1,22 +1,24 @@
+from __future__ import division
+
 import numpy as np
 import math
 
-def get_intersect(a1, a2, b1, b2):
-    """
-    Returns the point of intersection of the lines passing through a2,a1 and b2,b1.
-    a1: [x, y] a point on the first line
-    a2: [x, y] another point on the first line
-    b1: [x, y] a point on the second line
-    b2: [x, y] another point on the second line
-    """
-    s = np.vstack([a1,a2,b1,b2])        # s for stacked
-    h = np.hstack((s, np.ones((4, 1)))) # h for homogeneous
-    l1 = np.cross(h[0], h[1])           # get first line
-    l2 = np.cross(h[2], h[3])           # get second line
-    x, y, z = np.cross(l1, l2)          # point of intersection
-    if z == 0:                          # lines are parallel
-        return None
-    return (x/z, y/z)
+def line(p1, p2):
+    A = (p1[1] - p2[1])
+    B = (p2[0] - p1[0])
+    C = (p1[0]*p2[1] - p2[0]*p1[1])
+    return A, B, -C
+
+def intersection(L1, L2):
+    D  = L1[0] * L2[1] - L1[1] * L2[0]
+    Dx = L1[2] * L2[1] - L1[1] * L2[2]
+    Dy = L1[0] * L2[2] - L1[2] * L2[0]
+    if D != 0:
+        x = Dx / D
+        y = Dy / D
+        return x,y
+    else:
+        return False
 
 if __name__ == "__main__":
     # Opening a file and reading all lines
@@ -44,17 +46,17 @@ if __name__ == "__main__":
         for j in range(i+1, len(lines)):
             l1 = lines[i]
             l2 = lines[j]
+#
+            L1 = line([l1["x"], l1["y"]], [l1["x"]+l1["vx"], l1["y"]+l1["vy"]])
+            L2 = line([l2["x"], l2["y"]], [l2["x"]+l2["vx"], l2["y"]+l2["vy"]])
 
-            if (l1["vx"] == 0 or l1["vy"] == 0):
-                print(l1)
+            R = intersection(L1, L2)
 
-            intersection = get_intersect((l1["x"], l1["y"]), (l1["x"]+l1["vx"], l1["y"]+l1["vy"]), (l2["x"], l2["y"]), (l2["x"]+l2["vx"], l2["y"]+l2["vy"]))
-
-            if (intersection is None):
+            if not R:
                 continue
 
-            intrX = intersection[0]
-            intrY = intersection[1]
+            intrX = R[0]
+            intrY = R[1]
 
             if min <= intrX <= max and min <= intrY <= max:
                 is_l1_x_ok = intrX >= l1["x"] if l1["vx"] >= 0 else intrX <= l1["x"]
@@ -64,9 +66,5 @@ if __name__ == "__main__":
 
                 if is_l1_x_ok and is_l1_y_ok and is_l2_x_ok and is_l2_y_ok:
                     sum += 1
-#             else:
-#                 print("outside:", intersection, l1, l2)
 
     print(sum)
-
-# 19521 TOO LOW
